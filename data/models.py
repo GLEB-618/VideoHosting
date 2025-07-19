@@ -1,5 +1,6 @@
 from typing import Annotated
-from sqlalchemy import BigInteger, Text, Boolean, text
+from datetime import datetime
+from sqlalchemy import BigInteger, Text, Boolean, text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, sessionmaker
 from sqlalchemy.dialects.postgresql import ARRAY, TEXT
 
@@ -35,6 +36,15 @@ class Admin(Base):
     id: Mapped[intpk]
     login: Mapped[stx] = mapped_column(primary_key=True)
     password: Mapped[stx]
+
+class Comments(Base):
+    __tablename__ = "comments"
+
+    id: Mapped[intpk]
+    username: Mapped[stx]
+    uid: Mapped[stx]
+    content: Mapped[stx]
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
     
 # class Admins(Base):

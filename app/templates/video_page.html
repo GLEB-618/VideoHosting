@@ -17,19 +17,50 @@
             Ваш браузер не поддерживает тег <code>video</code>.
         </video>
 
-        <form action="{{ url_for('vote', uid=video.uid) }}" method="post" style="display:inline">
-            <input type="hidden" name="video_uid" value="{{ video.uid }}">
+        <form action="{{ url_for('view_video', uid=video.uid) }}" method="post" style="display:inline">
+            <!-- <input type="hidden" name="video_uid" value="{{ video.uid }}"> -->
+             <input type="hidden" name="action" value="like">
             <input type="hidden" name="vote_type" value="like">
             <input type="hidden" name="increase" value="true">
             <button type="submit">👍 Лайк ({{ video.likes }})</button>
         </form>
 
-        <form action="{{ url_for('vote', uid=video.uid) }}" method="post" style="display:inline">
-            <input type="hidden" name="video_uid" value="{{ video.uid }}">
+        <form action="{{ url_for('view_video', uid=video.uid) }}" method="post" style="display:inline">
+            <!-- <input type="hidden" name="video_uid" value="{{ video.uid }}"> -->
+             <input type="hidden" name="action" value="like">
             <input type="hidden" name="vote_type" value="dislikes">
             <input type="hidden" name="increase" value="true">
             <button type="submit">👎 Дизлайк ({{ video.dislikes }})</button>
         </form>
+
+        <br><br>
+
+        <div id="comments-section">
+            <h3>Комментарии</h3>
+
+            <!-- Форма отправки комментария -->
+            <form method="post" action="{{ url_for('view_video', uid=video.uid) }}">
+                <!-- <input type="hidden" name="video_uid" value="{{ video.uid }}"> -->
+                 <input type="hidden" name="action" value="comment">
+                <div class="comment-form">
+                    <textarea name="text" placeholder="Оставьте комментарий..." required></textarea>
+                    <button type="submit">Отправить</button>
+                </div>
+            </form>
+
+            <!-- Список комментариев -->
+            <div class="comments-list">
+                {% for comment in comments %}
+                    <div class="comment">
+                        <p class="author">{{ comment.username }}</p>
+                        <p class="text">{{ comment.content }}</p>
+                        <p class="date">{{ comment.created_at }}</p>
+                    </div>
+                {% else %}
+                    <p class="no-comments">Пока нет комментариев.</p>
+                {% endfor %}
+            </div>
+        </div>
 
         <br><br>
         <a href="{{ url_for('main') }}">← Назад к списку видео</a>

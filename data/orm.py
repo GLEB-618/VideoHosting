@@ -96,6 +96,29 @@ class SyncORM:
         except Exception as e:
             print(e)
 
+    @staticmethod
+    def get_all_comments_video(uid: str):
+        try:
+            with sync_session_factory() as session:
+                stmt = select(Comments.username, Comments.content, Comments.created_at).where(Comments.uid == uid).order_by(Comments.created_at)
+                result = session.execute(stmt).all() 
+                return [{'username': username, 'content': content, 'created_at': created_at} for username, content, created_at in result]
+            
+        except Exception as e:
+            print(e)
+            return []
+        
+    @staticmethod
+    def add_comment(content: str, username: int, uid: str):
+        try:
+            with sync_session_factory() as session:
+                stmt = insert(Comments).values(content=content, username=username, uid=uid).on_conflict_do_nothing()
+                session.execute(stmt)
+                session.commit()
+
+        except Exception as e:
+            print(e)
+
     # @staticmethod
     # async def select_state(user_id: int) -> str:
     #     try:

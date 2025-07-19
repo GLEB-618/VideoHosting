@@ -1,4 +1,4 @@
-from flask import  Flask, render_template, request, jsonify, redirect, url_for
+from flask import  render_template, request, jsonify, redirect, url_for, session
 from app import app
 from .minio_client import upload_video, get_url_video, get_url_thumb
 import pyclamd, uuid
@@ -12,7 +12,6 @@ def hash_password(password):
     return hashed.decode('utf-8')
 
 def verify_password(plain_password, hashed_password):
-    print(plain_password, hashed_password)
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 
@@ -28,21 +27,34 @@ def main():
             "uid": video['uid']})
     return render_template('index.html', videos=links)
 
-@app.route('/<string:uid>')
+@app.route('/<string:uid>', methods=['GET', 'POST'])
 def view_video(uid):
-    video = SyncORM.get_video_meta(uid)
-    url = get_url_video(uid)
-    return render_template('video_page.html', video=video, video_url=url)
+    if request.method == "POST":
+        action = request.form.get('action')
+        login = session.get('user_id')
+        # video_uid = request.form.get('video_uid')
+        if action == 'like':
+            vote_type = request.form.get('vote_type')
+            increase = request.form.get('increase') == 'true'
 
-@app.route('/<string:uid>/vote', methods=['POST'])
-def vote(uid):
-    video_uid = request.form['video_uid']
-    vote_type = request.form['vote_type']
-    increase = request.form['increase'] == 'true'
+            SyncORM.vote(uid, vote_type, increase)
 
-    SyncORM.vote(video_uid, vote_type, increase)
+            return redirect(url_for('view_video', uid=uid))
+        
+        elif action == 'comment':
+            if not login:
+                return redirect(url_for('login'))
+            
+            text = request.form.get('text')
 
-    return redirect(url_for('view_video', uid=uid))
+            SyncORM.add_comment(text, login, uid)
+
+            return redirect(url_for('view_video', uid=uid))
+    else:
+        video = SyncORM.get_video_meta(uid)
+        url = get_url_video(uid)
+        comments = SyncORM.get_all_comments_video(uid)
+        return render_template('video_page.html', video=video, video_url=url, comments=comments)
 
 @app.route("/liking")
 def liking():
@@ -126,7 +138,9 @@ def login():
             if not verify_password(password, user_password):
                 return jsonify({'message': 'Invalid password'}), 401
 
-            return jsonify({'message': 'Upload successful'}), 200
+            session['user_id'] = login
+
+            return redirect(url_for('main'))
 
         except Exception as e:
             print(f"Ошибка авторизации: {e}")
