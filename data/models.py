@@ -3,9 +3,14 @@ from datetime import datetime
 from sqlalchemy import BigInteger, Text, Boolean, text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, sessionmaker
 from sqlalchemy.dialects.postgresql import ARRAY, TEXT
+import bcrypt
 
 from data.database import Base
-from app.routes import hash_password
+
+def hash_password(password):
+    salt = bcrypt.gensalt(rounds=10)
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 intpk = Annotated[int, mapped_column(primary_key=True, autoincrement=True)]
 # usid = Annotated[int, mapped_column(BigInteger, unique=True)]

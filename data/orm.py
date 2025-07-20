@@ -4,6 +4,7 @@ from data.database import sync_engine, sync_session_factory, Base
 from data.models import *
 
 class SyncORM:
+
     @staticmethod
     def add_admin():
         try:
@@ -85,8 +86,6 @@ class SyncORM:
 
         except Exception as e:
             print(e)
-
-    
     
     @staticmethod
     def get_video_meta(uid: str):
