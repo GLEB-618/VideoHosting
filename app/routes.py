@@ -178,3 +178,7 @@ def register():
             return jsonify({'message': 'Ошибка сервера'}), 500
     else:
         return render_template('register.html')
+
+@app.route('/admin')
+def admin():
+    return render_template('admin.html')
