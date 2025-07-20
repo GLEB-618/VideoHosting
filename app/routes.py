@@ -127,21 +127,30 @@ def login():
         try:
             login = request.form.get('login')
             password = request.form.get('password')
-
+            selected = request.form.get('option') == 'true'
             if not login:
                 return "Логин обязателен"
-            
-            #Проверка на существование пользователя
-            user_password = SyncORM.get_user_password(login)
-            if not user_password:
-                return jsonify({'message': 'User not found'})
-            if not verify_password(password, user_password):
-                return jsonify({'message': 'Invalid password'}), 401
+            if not selected:
+                #Проверка на существование пользователя
+                user_password = SyncORM.get_user_password(login)
+                if not user_password:
+                    return jsonify({'message': 'User not found'})
+                if not verify_password(password, user_password):
+                    return jsonify({'message': 'Invalid password'}), 401
 
-            session['user_id'] = login
+                session['user_id'] = login
 
-            return redirect(url_for('main'))
+                return redirect(url_for('main'))
+            else:
+                admin_password = SyncORM.get_admin_password(login)
+                if not admin_password:
+                    return jsonify({'message': 'Admin not found'})
+                if not verify_password(password, admin_password):
+                    return jsonify({'message': 'Invalid password'}), 401
 
+                session['admin_id'] = login
+
+                return redirect(url_for('admin'))
         except Exception as e:
             print(f"Ошибка авторизации: {e}")
             return jsonify({'message': 'Server error'}), 500

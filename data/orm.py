@@ -4,6 +4,16 @@ from data.database import sync_engine, sync_session_factory, Base
 from data.models import *
 
 class SyncORM:
+    @staticmethod
+    def add_admin():
+        try:
+            with sync_session_factory() as session:
+                stmt = insert(Admin).on_conflict_do_nothing()
+                session.execute(stmt)
+                session.commit()
+
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def create_tables():
@@ -11,7 +21,7 @@ class SyncORM:
             with sync_engine.begin() as conn:
                 Base.metadata.drop_all(bind=conn)
                 Base.metadata.create_all(bind=conn)
-
+            SyncORM.add_admin()
         except Exception as e:
             print(e)
 
@@ -25,7 +35,7 @@ class SyncORM:
 
         except Exception as e:
             print(e)
-            
+
     @staticmethod
     def delete_meta_video(uid: str):
         try:
@@ -111,6 +121,17 @@ class SyncORM:
                 session.execute(stmt)
                 session.commit()
 
+        except Exception as e:
+            print(e)
+
+    @staticmethod
+    def get_admin_password(login: str):
+        try:
+            with sync_session_factory() as session:
+                query = select(Admin.password).where(Admin.login == login)
+                result = session.execute(query).scalar_one_or_none()
+                return result
+            
         except Exception as e:
             print(e)
 
