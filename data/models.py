@@ -20,6 +20,7 @@ class Videos(Base):
     description: Mapped[stx]
     likes: Mapped[int] = mapped_column(server_default=text("0"))
     dislikes: Mapped[int] = mapped_column(server_default=text("0"))
+    approved: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
 
 
 class Users(Base):

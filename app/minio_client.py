@@ -2,6 +2,7 @@ import os, tempfile, ffmpeg
 from minio import Minio
 from flask import current_app, jsonify
 from datetime import timedelta
+from data.orm import SyncORM
 
 def get_s3_client():
     client = Minio(
@@ -81,3 +82,16 @@ def get_url_thumb(uid):
         expires=timedelta(hours=1)
         )
     return presigned_url
+
+def delete_video(uid):
+    SyncORM.delete_meta_video(uid)
+    
+    s3 = get_s3_client()
+    s3.remove_object(
+        bucket_name=current_app.config['AWS_BUCKET_NAME_VIDEOS'], 
+        object_name=f"{uid}.mp4"
+    )
+    s3.remove_object(
+        bucket_name=current_app.config['AWS_BUCKET_NAME_THUMBNAILS'], 
+        object_name=f"{uid}.jpeg"
+    )

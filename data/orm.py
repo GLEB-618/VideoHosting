@@ -1,4 +1,4 @@
-from sqlalchemy import select, func, update, exists
+from sqlalchemy import select, func, update, delete
 from sqlalchemy.dialects.postgresql import insert
 from data.database import sync_engine, sync_session_factory, Base
 from data.models import *
@@ -25,18 +25,58 @@ class SyncORM:
 
         except Exception as e:
             print(e)
+            
+    @staticmethod
+    def delete_meta_video(uid: str):
+        try:
+            with sync_session_factory() as session:
+                stmt = delete(Videos).where(Videos.uid == uid)
+                session.execute(stmt)
+                session.commit()
+
+        except Exception as e:
+            print(e)
 
     @staticmethod
     def get_all_video_uids():
         try:
             with sync_session_factory() as session:
-                stmt = select(Videos.title, Videos.uid).order_by(func.random())
+                stmt = select(Videos.title, Videos.uid).where(Videos.approved == True).order_by(func.random())
                 result = session.execute(stmt).all()  # список кортежей: [('title1', 'uid1'), ...]
                 return [{'title': title, 'uid': uid} for title, uid in result]
             
         except Exception as e:
             print(e)
             return []
+        
+    @staticmethod
+    def get_all_video_uids_not_apprevoed():
+        try:
+            with sync_session_factory() as session:
+                stmt = select(Videos.title, Videos.uid).where(Videos.approved == False).order_by(Videos.id)
+                result = session.execute(stmt).all()  # список кортежей: [('title1', 'uid1'), ...]
+                return [{'title': title, 'uid': uid} for title, uid in result]
+            
+        except Exception as e:
+            print(e)
+            return []
+        
+    @staticmethod
+    async def update_approved_video(uid: int):
+        try:
+            with sync_session_factory() as session:
+                stmt = select(Videos).where(Videos.approved == False, Videos.uid == uid)
+                result = session.execute(stmt)
+                videos = result.scalar_one_or_none() 
+                
+                if videos:
+                    videos.approved = True
+                    session.commit()
+
+        except Exception as e:
+            print(e)
+
+    
     
     @staticmethod
     def get_video_meta(uid: str):
