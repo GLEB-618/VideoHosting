@@ -5,6 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, sessionmaker
 from sqlalchemy.dialects.postgresql import ARRAY, TEXT
 
 from data.database import Base
+from app.routes import hash_password
 
 intpk = Annotated[int, mapped_column(primary_key=True, autoincrement=True)]
 # usid = Annotated[int, mapped_column(BigInteger, unique=True)]
@@ -35,8 +36,8 @@ class Admin(Base):
     __tablename__ = "admins"
 
     id: Mapped[intpk]
-    login: Mapped[stx] = mapped_column(primary_key=True)
-    password: Mapped[stx]
+    login: Mapped[stx] = mapped_column(primary_key=True, server_default="admin")
+    password: Mapped[stx] = mapped_column(server_default=hash_password("supersecret"))
 
 class Comments(Base):
     __tablename__ = "comments"
