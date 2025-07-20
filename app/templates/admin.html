@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <title>Главная страница GIKVID(Администрация)</title>
+
+</head>
+<body>
+    <a href="/login" class="login-btn">Войти</a>
+
+
+    <div class="content">
+        {% for video in videos %}
+            <div>
+                <a href="{{ url_for('view_video', uid=video.uid) }}">
+                    <img src="{{ video.thumb_url }}" alt="thumbnail" width="320">
+                    <h3>{{ video.title }}</h3>
+                </a>
+            </div>
+        {% endfor %}
+
+        <div class="search-form">
+        <input class="search-form__txt" type="text" placeholder="Введите запрос">
+        <button class="search-form__btn">
+            <img class="search-form__img" src="static/img/lupa.png" alt="Поиск">
+        </button>
+        </div>
+        
+    </div>
+    
+    <div class="aside">   
+    <aside> <!-- Левая панель с кнопками -->
+        <a href="/">  <!-- Логотип сайта и переход на главную страницу -->
+            <img class="logo" src="/static/img/admin.png" width="90" height="90" alt="Главная страница GDVDube">
+        </a>
+
+            <!-- Переход во вкладу "Понравившиеся" -->
+        <p><a href="/liking" class="button"
+            style="
+                width: 166px;
+                height: 36px;
+                border: 3px solid black;
+                border-radius: 15px;
+                padding: 5px;
+                display: block;
+                box-sizing: border-box;
+                background-color: white;
+                box-shadow: 0 0 5px rgba(0,0,0,0.2);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                ">Понравившиеся   
+        </a></p> 
+                <!-- Переход во вкладу "Настройки" -->
+        <p><a href="/settings" class="button"
+            style="
+                width: 114px;
+                height: 34px;
+                border: 3px solid black;
+                border-radius: 15px;
+                padding: 5px;
+                display: block;
+                box-sizing: border-box;
+                background-color: white;
+                box-shadow: 0 0 5px rgba(0,0,0,0.2);
+                ">Настройки
+        </a></p>
+                <!-- Переход во вкладку "О сайте" -->
+        <p><a href="/info" class="button"
+            style="
+                width: 92px;
+                height: 36px;
+                border: 3px solid black;
+                border-radius: 15px;
+                padding: 5px;
+                display: block;
+                box-sizing: border-box;
+                background-color: white;
+                box-shadow: 0 0 5px rgba(0,0,0,0.2);
+                ">О сайте
+        </a></p>
+                <!-- Переход во вкладку "Помощь" -->
+        <p><a href="/help" class="button"
+            style="
+                width: 92px;
+                height: 36px;
+                border: 3px solid black;
+                border-radius: 15px;
+                padding: 5px;
+                display: block;
+                box-sizing: border-box;
+                background-color: white;
+                box-shadow: 0 0 5px rgba(0,0,0,0.2);
+                ">Помощь    
+        </a></p>
+            <!-- Переход во вкладку "Жалобы" -->
+        <p><a href="/complaints" class="button"
+            style="
+                width: 94px;
+                height: 36px;
+                border: 3px solid black;
+                border-radius: 15px;
+                padding: 5px;
+                display: block;
+                box-sizing: border-box;
+                background-color: white;
+                box-shadow: 0 0 5px rgba(0,0,0,0.2);
+                ">Жалобы    
+        </a></p>
+            <!-- Переход во вкладку "Ваши видео" -->
+        <p><a href="/channel" class="button"
+            style="
+                width: 130px;
+                height: 36px;
+                border: 3px solid black;
+                border-radius: 15px;
+                padding: 5px;
+                display: block;
+                box-sizing: border-box;
+                background-color: white;
+                box-shadow: 0 0 5px rgba(0,0,0,0.2);
+                ">Ваши видео   
+        </a></p>
+    </aside></div>
+
+
+
+</body>
+</html>
