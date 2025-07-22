@@ -47,8 +47,12 @@ def view_video(uid):
             
             text = request.form.get('text')
 
-            SyncORM.add_comment(text, login, uid)
+            if text:
 
+                SyncORM.add_comment(text, login, uid)
+
+            return redirect(url_for('view_video', uid=uid))
+        else:
             return redirect(url_for('view_video', uid=uid))
     else:
         video = SyncORM.get_video_meta(uid)
@@ -79,10 +83,6 @@ def complaints():
 @app.route("/channel")
 def channel():
     return render_template('channel.html')
-
-@app.route('/upload')
-def index():
-    return render_template('upload.html')
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
@@ -116,7 +116,7 @@ def upload():
             # Возвращаем ID видео
             return jsonify({'message': 'Upload successful'}), 200
         except Exception as e:
-            print('Ошибка регистрации:{e}')
+            print(e)
             return jsonify({'message': 'Ошибка сервера'}), 500
     else:
         return render_template('upload.html')
@@ -127,30 +127,28 @@ def login():
         try:
             login = request.form.get('login')
             password = request.form.get('password')
-            selected = request.form.get('option') == 'true'
+
             if not login:
                 return "Логин обязателен"
-            if not selected:
-                #Проверка на существование пользователя
-                user_password = SyncORM.get_user_password(login)
-                if not user_password:
-                    return jsonify({'message': 'User not found'})
-                if not verify_password(password, user_password):
-                    return jsonify({'message': 'Invalid password'}), 401
+            
+            check_admin = SyncORM.get_admin_check(login)
 
-                session['user_id'] = login
+            #Проверка на существование пользователя
+            user_password = SyncORM.get_user_password(login)
 
-                return redirect(url_for('main'))
-            else:
-                admin_password = SyncORM.get_admin_password(login)
-                if not admin_password:
-                    return jsonify({'message': 'Admin not found'})
-                if not verify_password(password, admin_password):
-                    return jsonify({'message': 'Invalid password'}), 401
+            if not user_password:
+                return jsonify({'message': 'User not found'})
+            
+            if not verify_password(password, user_password):
+                return jsonify({'message': 'Invalid password'}), 401
 
+            session['user_id'] = login
+
+            if check_admin:
                 session['admin_id'] = login
 
-                return redirect(url_for('admin'))
+            return redirect(url_for('main'))
+
         except Exception as e:
             print(f"Ошибка авторизации: {e}")
             return jsonify({'message': 'Server error'}), 500
@@ -190,4 +188,7 @@ def register():
 
 @app.route('/admin')
 def admin():
-    return render_template('admin.html')
+    if session.get('admin_id'):
+        return render_template('admin.html')
+    else:
+        return redirect(url_for('main'))
