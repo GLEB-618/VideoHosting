@@ -47,8 +47,12 @@ def view_video(uid):
             
             text = request.form.get('text')
 
-            SyncORM.add_comment(text, login, uid)
+            if text:
 
+                SyncORM.add_comment(text, login, uid)
+
+            return redirect(url_for('view_video', uid=uid))
+        else:
             return redirect(url_for('view_video', uid=uid))
     else:
         video = SyncORM.get_video_meta(uid)
@@ -116,7 +120,7 @@ def upload():
             # Возвращаем ID видео
             return jsonify({'message': 'Upload successful'}), 200
         except Exception as e:
-            print(f'Ошибка регистрации:{e}')
+            print(e)
             return jsonify({'message': 'Ошибка сервера'}), 500
     else:
         return render_template('upload.html')
@@ -127,30 +131,28 @@ def login():
         try:
             login = request.form.get('login')
             password = request.form.get('password')
-            selected = request.form.get('option') == 'true'
+
             if not login:
                 return "Логин обязателен"
-            if not selected:
-                #Проверка на существование пользователя
-                user_password = SyncORM.get_user_password(login)
-                if not user_password:
-                    return jsonify({'message': 'User not found'})
-                if not verify_password(password, user_password):
-                    return jsonify({'message': 'Invalid password'}), 401
+            
+            check_admin = SyncORM.get_admin_check(login)
 
-                session['user_id'] = login
+            #Проверка на существование пользователя
+            user_password = SyncORM.get_user_password(login)
 
-                return redirect(url_for('main'))
-            else:
-                admin_password = SyncORM.get_admin_password(login)
-                if not admin_password:
-                    return jsonify({'message': 'Admin not found'})
-                if not verify_password(password, admin_password):
-                    return jsonify({'message': 'Invalid password'}), 401
+            if not user_password:
+                return jsonify({'message': 'User not found'})
+            
+            if not verify_password(password, user_password):
+                return jsonify({'message': 'Invalid password'}), 401
 
+            session['user_id'] = login
+
+            if check_admin:
                 session['admin_id'] = login
 
-                return redirect(url_for('admin'))
+            return redirect(url_for('main'))
+
         except Exception as e:
             print(f"Ошибка авторизации: {e}")
             return jsonify({'message': 'Server error'}), 500
@@ -190,20 +192,23 @@ def register():
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
-    if request.method == 'GET':
-        videos = SyncORM.get_all_video_uids_not_apprevoed()
-        links = []
-        for video in videos:
-            video_url = get_url_video(video['uid'])
-            links.append({
-                "title": video["title"], 
-                "video_url": video_url,
-                "uid": video['uid']})
-        return render_template('admin.html', videos=links)
-    if request.method == 'POST':
-        approved = request.form.get('approved') == 'true'
-        if approved:
-            SyncORM.update_approved_video(uid=request.form.get('uid'))
-        else:
-            delete_video(uid=request.form.get('uid'))
-        return redirect(url_for('admin'))
+    if session.get('admin_id'):
+        if request.method == 'GET':
+            videos = SyncORM.get_all_video_uids_not_apprevoed()
+            links = []
+            for video in videos:
+                video_url = get_url_video(video['uid'])
+                links.append({
+                    "title": video["title"], 
+                    "video_url": video_url,
+                    "uid": video['uid']})
+            return render_template('admin.html', videos=links)
+        if request.method == 'POST':
+            approved = request.form.get('approved') == 'true'
+            if approved:
+                SyncORM.update_approved_video(uid=request.form.get('uid'))
+            else:
+                delete_video(uid=request.form.get('uid'))
+            return redirect(url_for('admin'))
+    else:
+        return redirect(url_for('main'))

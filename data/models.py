@@ -35,14 +35,7 @@ class Users(Base):
     id: Mapped[intpk]
     login: Mapped[stx] = mapped_column(primary_key=True)
     password: Mapped[stx]
-
-
-class Admin(Base):
-    __tablename__ = "admins"
-
-    id: Mapped[intpk]
-    login: Mapped[stx] = mapped_column(primary_key=True, server_default="admin")
-    password: Mapped[stx] = mapped_column(server_default=hash_password("supersecret"))
+    is_admin: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
 
 class Comments(Base):
     __tablename__ = "comments"

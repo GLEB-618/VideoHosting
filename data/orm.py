@@ -6,23 +6,11 @@ from data.models import *
 class SyncORM:
 
     @staticmethod
-    def add_admin():
-        try:
-            with sync_session_factory() as session:
-                stmt = insert(Admin).on_conflict_do_nothing()
-                session.execute(stmt)
-                session.commit()
-
-        except Exception as e:
-            print(e)
-
-    @staticmethod
     def create_tables():
         try:
             with sync_engine.begin() as conn:
                 Base.metadata.drop_all(bind=conn)
                 Base.metadata.create_all(bind=conn)
-            SyncORM.add_admin()
         except Exception as e:
             print(e)
 
@@ -124,10 +112,10 @@ class SyncORM:
             print(e)
 
     @staticmethod
-    def get_admin_password(login: str):
+    def get_admin_check(login: str):
         try:
             with sync_session_factory() as session:
-                query = select(Admin.password).where(Admin.login == login)
+                query = select(Users.is_admin).where(Users.login == login)
                 result = session.execute(query).scalar_one_or_none()
                 return result
             
