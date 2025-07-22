@@ -73,7 +73,7 @@ class SyncORM:
             return []
         
     @staticmethod
-    async def update_approved_video(uid: int):
+    def update_approved_video(uid: int):
         try:
             with sync_session_factory() as session:
                 stmt = select(Videos).where(Videos.approved == False, Videos.uid == uid)

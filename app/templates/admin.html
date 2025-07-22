@@ -13,12 +13,24 @@
 
     <div class="content">
         {% for video in videos %}
-            <div>
-                <a href="{{ url_for('view_video', uid=video.uid) }}">
-                    <img src="{{ video.thumb_url }}" alt="thumbnail" width="320">
-                    <h3>{{ video.title }}</h3>
-                </a>
+        <video width="720" controls>
+            <source src="{{ video.video_url }}" type="video/mp4">
+            Ваш браузер не поддерживает тег <code>video</code>.
+        </video>
+        <form action="/admin" method="post">
+            <div class="approved">
+                <input type="hidden" name="approved" value="true">
+                <input type="hidden" name="uid" value="{{video.uid}}">
+                <button type="submit">Одобренно</button>
             </div>
+        </form>
+        <form action="/admin" method="post">
+            <div class="not_approved">
+                <input type="hidden" name="approved" value="false">
+                <input type="hidden" name="uid" value="{{video.uid}}">
+                <button type="submit">Запрещенно</button>
+            </div>
+        </form>
         {% endfor %}
 
         <div class="search-form">

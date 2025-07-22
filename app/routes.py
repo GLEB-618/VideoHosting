@@ -1,6 +1,6 @@
 from flask import  render_template, request, jsonify, redirect, url_for, session
 from app import app
-from .minio_client import upload_video, get_url_video, get_url_thumb
+from .minio_client import upload_video, get_url_video, get_url_thumb, delete_video
 import pyclamd, uuid
 from data.orm import SyncORM
 import bcrypt
@@ -80,10 +80,6 @@ def complaints():
 def channel():
     return render_template('channel.html')
 
-@app.route('/upload')
-def index():
-    return render_template('upload.html')
-
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
@@ -93,18 +89,22 @@ def upload():
             description = request.form.get('description')
             file = request.files.get('video')
             if not file:
+                print(100)
                 return jsonify({'error': 'No video uploaded'}), 400
 
             # Подключение к clamd
             cd = pyclamd.ClamdNetworkSocket(host='26.48.28.173', port=3310)
-
+            print(200)
             if not cd.ping():
+                print(300)
                 return jsonify({'error': 'ClamAV daemon is not available'}), 500
-            
+
             # Перемещаем указатель в начало и скармливаем байты
             file.seek(0)
             result = cd.scan_stream(file.read())
+            print(400)
             if result is not None:
+                print(500)
                 return jsonify({'error': 'File is infected', 'details': result}), 400
 
             file.seek(0)
@@ -112,11 +112,11 @@ def upload():
             uid = uuid.uuid4().hex
             upload_video(file, file.filename, uid)
             SyncORM.insert_meta_video(uid, title, description) # type: ignore
-
+            print(600)
             # Возвращаем ID видео
             return jsonify({'message': 'Upload successful'}), 200
         except Exception as e:
-            print('Ошибка регистрации:{e}')
+            print(f'Ошибка регистрации:{e}')
             return jsonify({'message': 'Ошибка сервера'}), 500
     else:
         return render_template('upload.html')
@@ -188,6 +188,22 @@ def register():
     else:
         return render_template('register.html')
 
-@app.route('/admin')
+@app.route('/admin', methods=['GET', 'POST'])
 def admin():
-    return render_template('admin.html')
+    if request.method == 'GET':
+        videos = SyncORM.get_all_video_uids_not_apprevoed()
+        links = []
+        for video in videos:
+            video_url = get_url_video(video['uid'])
+            links.append({
+                "title": video["title"], 
+                "video_url": video_url,
+                "uid": video['uid']})
+        return render_template('admin.html', videos=links)
+    if request.method == 'POST':
+        approved = request.form.get('approved') == 'true'
+        if approved:
+            SyncORM.update_approved_video(uid=request.form.get('uid'))
+        else:
+            delete_video(uid=request.form.get('uid'))
+        return redirect(url_for('admin'))
